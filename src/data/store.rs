@@ -11,7 +11,7 @@ impl Store {
     pub fn new(password: &str, meta_data: Option<Value>) -> Self {
         Store {
             password: password.to_owned(),
-            meta_data: meta_data.unwrap_or_default(),
+            meta_data: meta_data.unwrap_or_else(|| Value::Object(Default::default())),
         }
     }
 }
