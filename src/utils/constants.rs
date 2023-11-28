@@ -1,1 +1,1 @@
-pub const APP_NAME: &str = "sip";
+pub const APP_NAME: &str = "safire";
