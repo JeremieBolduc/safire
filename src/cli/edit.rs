@@ -2,13 +2,13 @@ use clap::Parser;
 use std::error::Error;
 use std::process::Command;
 
-use crate::commands::command_handler::CommandHandler;
-use crate::utils::constants::APP_NAME;
+use super::command_handler::CommandHandler;
+use crate::utils::paths::get_app_path;
 
 #[derive(Parser, Debug)]
 pub struct EditArgs {
     path: String,
-    #[clap(short, long, default_value = "nano")]
+    #[clap(short, long, default_value = "vi")]
     pub editor: String,
 }
 
@@ -27,10 +27,22 @@ impl EditHandler {
 }
 
 impl CommandHandler for EditHandler {
-    fn execute(&self) -> Result<(), Box<dyn Error>> {
+    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
         let file_name = format!("{}.json", self.path.replace("/", "-"));
-        let home_dir = dirs::home_dir().ok_or("Unable to determine home directory")?;
-        let file_path = home_dir.join(APP_NAME).join(&self.path).join(file_name);
+        let app_path = get_app_path();
+        let store_path = app_path.join(&self.path);
+        let file_path = store_path.join(&file_name);
+
+        if !store_path.exists() {
+            return Ok(Some(format!("Could not find store for {}", self.path)));
+        }
+
+        if !file_path.exists() {
+            return Ok(Some(format!(
+                "Could not find the data file for {}",
+                self.path
+            )));
+        }
 
         let status = Command::new(self.editor.as_str())
             .arg(&file_path)
@@ -39,7 +51,7 @@ impl CommandHandler for EditHandler {
         println!("Editing store {} with {}", &self.path, self.editor);
 
         if status.success() {
-            Ok(())
+            Ok(None)
         } else {
             Err("Editor process exited with an error".into())
         }
