@@ -1,4 +1,4 @@
 pub mod constants;
-pub mod find;
+pub mod crypto;
 pub mod directories;
 pub mod paths;
