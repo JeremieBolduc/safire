@@ -1,46 +1,42 @@
-pub mod commands;
-pub mod entities;
-pub mod utils;
-
 use clap::Parser;
 use std::error::Error;
 
-use crate::commands::*;
+pub mod cli;
+pub mod data;
+pub mod utils;
 
-/// A simple local password store
-#[derive(Parser, Debug)]
-#[clap(
-    author = "Jeremie Bolduc",
-    version,
-    about = "A simple password management tool"
-)]
-enum Command {
-    /// Opens a text editor to the text file that contains the store password and meta-data
-    Edit(edit::EditArgs),
-    /// Adds a new password for the given key
-    Insert(insert::InsertArgs),
-    /// Copies a password to the clipboard
-    Cp(copy::CopyArgs),
-    /// Generates a password for the given key
-    Gen(generate::GenerateArgs),
-    /// Attempts to find stores that match a query string
-    Find { query: String },
+use crate::cli::*;
+
+fn main() {
+    let result = run();
+
+    match result {
+        Ok(Some(msg)) => {
+            println!("{}", msg);
+            // msg;
+        }
+        Ok(None) => {}
+        Err(err) => {
+            eprintln!("Error: {:?}", err);
+        }
+    }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let command = Command::parse();
+fn run() -> Result<Option<String>, Box<dyn Error>> {
+    let command = command::Command::parse();
     let command_handler: Box<dyn command_handler::CommandHandler> = get_handler(command);
     let result = command_handler.execute();
 
-    return result;
+    result
 }
 
-fn get_handler(command: Command) -> Box<dyn command_handler::CommandHandler> {
+fn get_handler(command: command::Command) -> Box<dyn command_handler::CommandHandler> {
     match command {
-        Command::Edit(args) => Box::new(edit::EditHandler::new(args)),
-        Command::Insert(args) => Box::new(insert::InsertHandler::new(args)),
-        Command::Cp(args) => Box::new(copy::CopyHandler::new(args)),
-        Command::Gen(args) => Box::new(generate::GenerateHandler::new(args)),
-        Command::Find { query } => Box::new(find::FindHandler::new(&query)),
+        command::Command::Edit(args) => Box::new(edit::EditHandler::new(args)),
+        command::Command::Insert(args) => Box::new(insert::InsertHandler::new(args)),
+        command::Command::Cp(args) => Box::new(copy::CopyHandler::new(args)),
+        command::Command::Gen(args) => Box::new(generate::GenerateHandler::new(args)),
+        command::Command::Find { query } => Box::new(find::FindHandler::new(&query)),
+        command::Command::Rm(args) => Box::new(remove::RemoveHandler::new(args)),
     }
 }
