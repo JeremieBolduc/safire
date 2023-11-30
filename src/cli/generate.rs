@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use clap::Parser;
 use rand::Rng;
 use serde_json::to_writer_pretty;
@@ -31,8 +32,9 @@ impl GenerateHandler {
     }
 }
 
+#[async_trait]
 impl CommandHandler for GenerateHandler {
-    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
+    async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
         const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()[]{}/`;:,.<>-_+=";
 
         let mut rng = rand::thread_rng();

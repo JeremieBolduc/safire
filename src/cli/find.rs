@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use std::error::Error;
 
 use super::command_handler::CommandHandler;
@@ -15,8 +16,9 @@ impl FindHandler {
     }
 }
 
+#[async_trait]
 impl CommandHandler for FindHandler {
-    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
+    async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
         let find_result = find_directories(&self.query, &get_app_path());
 
         match find_result {

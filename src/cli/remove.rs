@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use clap::Parser;
 use std::error::Error;
 use std::fs;
@@ -22,8 +23,9 @@ impl RemoveHandler {
     }
 }
 
+#[async_trait]
 impl CommandHandler for RemoveHandler {
-    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
+    async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
         let store_path = get_app_path().join(&self.path);
         fs::remove_dir_all(&store_path)?;
 

@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use clap::Parser;
 use std::error::Error;
 use std::process::Command;
@@ -26,8 +27,9 @@ impl EditHandler {
     }
 }
 
+#[async_trait]
 impl CommandHandler for EditHandler {
-    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
+    async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
         let file_name = format!("{}.json", self.path.replace("/", "-"));
         let app_path = get_app_path();
         let store_path = app_path.join(&self.path);

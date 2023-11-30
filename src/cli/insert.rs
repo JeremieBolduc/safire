@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use clap::Parser;
 use rpassword;
 use serde_json::to_writer_pretty;
@@ -26,8 +27,9 @@ impl InsertHandler {
     }
 }
 
+#[async_trait]
 impl CommandHandler for InsertHandler {
-    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
+    async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
         let password = rpassword::read_password_from_tty(Some(&format!(
             "Enter the password for {}: ",
             &self.path
