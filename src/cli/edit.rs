@@ -5,6 +5,7 @@ use std::process::Command;
 
 use super::command_handler::CommandHandler;
 use crate::utils::constants::ENCRYPTED_FILE_EXT;
+use crate::utils::gpg::{get_gpg_recipient, GpgManager};
 use crate::utils::paths::get_app_path;
 
 #[derive(Parser, Debug)]
@@ -32,23 +33,23 @@ impl EditHandler {
 impl CommandHandler for EditHandler {
     async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
         let encrypted_file_name = format!("{}.{}", self.path.replace("/", "-"), ENCRYPTED_FILE_EXT);
-        let app_path = get_app_path();
-        let store_path = app_path.join(&self.path);
-        let file_path = store_path.join(&file_name);
+        let store_path = get_app_path().join(&self.path);
+        let encrypted_file_path = store_path.join(&encrypted_file_name);
 
-        if !store_path.exists() {
-            return Ok(Some(format!("Could not find store for {}", self.path)));
-        }
+        let gpg_recipient = get_gpg_recipient()?;
+        let mut gpg_manager = GpgManager::new(&gpg_recipient);
 
-        if !file_path.exists() {
+        let decrypted_file_path = gpg_manager.decrypt_file(&encrypted_file_path)?;
+
+        if !decrypted_file_path.exists() {
             return Ok(Some(format!(
                 "Could not find the data file for {}",
                 self.path
             )));
         }
 
-        let status = Command::new(self.editor.as_str())
-            .arg(&file_path)
+        let status = Command::new(&self.editor)
+            .arg(&decrypted_file_path)
             .status()?;
 
         println!("Editing store {} with {}", &self.path, self.editor);

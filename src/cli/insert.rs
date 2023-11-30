@@ -3,11 +3,11 @@ use clap::Parser;
 use rpassword;
 use serde_json::to_writer_pretty;
 use std::error::Error;
-use std::fs::File;
+use std::fs::{self, File};
 
 use super::command_handler::CommandHandler;
 use crate::data::store::Store;
-use crate::utils::directories::create_directories;
+use crate::utils::constants::DECRYPTED_FILE_EXT;
 use crate::utils::paths::get_app_path;
 
 #[derive(Parser, Debug)]
@@ -39,7 +39,7 @@ impl CommandHandler for InsertHandler {
         let file_name = format!("{}.{}", self.path.replace("/", "-"), DECRYPTED_FILE_EXT);
         let file_path = store_path.join(&file_name);
 
-        if let Err(err) = create_directories(&store_path) {
+        if let Err(err) = fs::create_dir_all(&store_path) {
             eprintln!("Error creating directories: {}", err);
             return Err(err.into());
         }

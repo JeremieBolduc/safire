@@ -2,7 +2,8 @@ use async_trait::async_trait;
 use std::error::Error;
 
 use super::command_handler::CommandHandler;
-use crate::utils::{directories::find_directories, paths::get_app_path};
+use crate::utils::directories::find_directories_in;
+use crate::utils::paths::get_app_path;
 
 pub struct FindHandler {
     query: String,
@@ -19,7 +20,7 @@ impl FindHandler {
 #[async_trait]
 impl CommandHandler for FindHandler {
     async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
-        let find_result = find_directories(&self.query, &get_app_path());
+        let find_result = find_directories_in(&get_app_path(), &self.query);
 
         match find_result {
             Ok(entries) => {

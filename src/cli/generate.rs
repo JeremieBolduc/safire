@@ -1,13 +1,13 @@
 use async_trait::async_trait;
 use clap::Parser;
 use rand::Rng;
-use serde_json::to_writer_pretty;
 use std::error::Error;
-use std::fs::File;
+use std::fs::{self, File};
+use std::io::Write;
 
 use super::command_handler::CommandHandler;
-use crate::data::store::Store;
-use crate::utils::directories::create_directories;
+use crate::utils::constants::DECRYPTED_FILE_EXT;
+use crate::utils::gpg::{get_gpg_recipient, GpgManager};
 use crate::utils::paths::get_app_path;
 
 #[derive(Parser, Debug)]
@@ -35,8 +35,8 @@ impl GenerateHandler {
 #[async_trait]
 impl CommandHandler for GenerateHandler {
     async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
-        const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()[]{}/`;:,.<>-_+=";
-
+        const CHARSET: &[u8] =
+            b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*-_+=";
         let mut rng = rand::thread_rng();
         let password: String = (0..self.length)
             .map(|_| {
@@ -47,17 +47,22 @@ impl CommandHandler for GenerateHandler {
 
         let store_path = get_app_path().join(&self.path);
         let decrypted_file_name = format!("{}.{}", self.path.replace("/", "-"), DECRYPTED_FILE_EXT);
-        let file_path = store_path.join(&file_name);
+        let decrypted_file_path = store_path.join(&decrypted_file_name);
 
-        if let Err(err) = create_directories(&store_path) {
+        if let Err(err) = fs::create_dir_all(&store_path) {
             eprintln!("Error creating directories: {}", err);
             return Err(err.into());
         }
 
-        let mut file = File::create(file_path)?;
-        let store = Store::new(&password, None);
+        let gpg_recipient = get_gpg_recipient()?;
+        let mut gpg_manager = GpgManager::new(&gpg_recipient);
 
-        to_writer_pretty(&mut file, &store)?;
+        let mut file = File::create(&decrypted_file_path)?;
+
+        file.write_all(password.as_bytes())?;
+
+        gpg_manager.encrypt_file(&decrypted_file_path)?;
+
         println!(
             "Created a store for {} using the generated password",
             self.path
