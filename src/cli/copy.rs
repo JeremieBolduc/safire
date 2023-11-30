@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{self};
 
 use super::command_handler::CommandHandler;
-use crate::data::store::Store;
+use crate::utils::constants::ENCRYPTED_FILE_EXT;
 use crate::utils::paths::get_app_path;
 
 #[derive(Parser, Debug)]
@@ -29,7 +29,7 @@ impl CopyHandler {
 #[async_trait]
 impl CommandHandler for CopyHandler {
     async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
-        let file_name = format!("{}.json", self.path.replace("/", "-"));
+        let encrypted_file_name = format!("{}.{}", self.path.replace("/", "-"), ENCRYPTED_FILE_EXT);
         let store_path = get_app_path().join(&self.path);
         let file_path = get_app_path().join(&self.path).join(file_name);
 

@@ -4,6 +4,7 @@ use std::error::Error;
 use std::process::Command;
 
 use super::command_handler::CommandHandler;
+use crate::utils::constants::ENCRYPTED_FILE_EXT;
 use crate::utils::paths::get_app_path;
 
 #[derive(Parser, Debug)]
@@ -30,7 +31,7 @@ impl EditHandler {
 #[async_trait]
 impl CommandHandler for EditHandler {
     async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
-        let file_name = format!("{}.json", self.path.replace("/", "-"));
+        let encrypted_file_name = format!("{}.{}", self.path.replace("/", "-"), ENCRYPTED_FILE_EXT);
         let app_path = get_app_path();
         let store_path = app_path.join(&self.path);
         let file_path = store_path.join(&file_name);

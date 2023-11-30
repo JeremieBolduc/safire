@@ -46,7 +46,7 @@ impl CommandHandler for GenerateHandler {
             .collect();
 
         let store_path = get_app_path().join(&self.path);
-        let file_name = format!("{}.json", self.path.replace("/", "-"));
+        let decrypted_file_name = format!("{}.{}", self.path.replace("/", "-"), DECRYPTED_FILE_EXT);
         let file_path = store_path.join(&file_name);
 
         if let Err(err) = create_directories(&store_path) {
