@@ -1,12 +1,8 @@
 use clap::Parser;
+use colored::Colorize;
+use safire::cli::*;
 use std::error::Error;
 use tokio;
-
-pub mod cli;
-pub mod data;
-pub mod utils;
-
-use crate::cli::*;
 
 #[tokio::main]
 async fn main() {
@@ -18,28 +14,28 @@ async fn main() {
         }
         Ok(None) => {}
         Err(err) => {
-            eprintln!("Error: {:?}", err);
+            eprintln!("Error: {}", err.to_string().red());
         }
     }
 }
 
 async fn run_async() -> Result<Option<String>, Box<dyn Error>> {
-    let command = command::Command::parse();
-    let command_handler: Box<dyn command_handler::CommandHandler> = get_handler(command);
+    let command = subcommand::Subcommand::parse();
+    let command_handler: Box<dyn subcommand::SubcommandHandler> = get_handler(command);
     let result = command_handler.execute_async().await;
 
     result
 }
 
-fn get_handler(command: command::Command) -> Box<dyn command_handler::CommandHandler> {
+fn get_handler(command: subcommand::Subcommand) -> Box<dyn subcommand::SubcommandHandler> {
     match command {
-        command::Command::Cp(args) => Box::new(copy::CopyHandler::new(args)),
-        command::Command::Edit(args) => Box::new(edit::EditHandler::new(args)),
-        command::Command::Find { query } => Box::new(find::FindHandler::new(&query)),
-        command::Command::Gen(args) => Box::new(generate::GenerateHandler::new(args)),
-        command::Command::Grep(args) => Box::new(grep::GrepHandler::new(args)),
-        command::Command::Init(args) => Box::new(init::InitHandler::new(args)),
-        command::Command::Insert(args) => Box::new(insert::InsertHandler::new(args)),
-        command::Command::Rm(args) => Box::new(remove::RemoveHandler::new(args)),
+        subcommand::Subcommand::Add(args) => Box::new(add::AddHandler::new(args)),
+        subcommand::Subcommand::Cp(args) => Box::new(copy::CopyHandler::new(args)),
+        subcommand::Subcommand::Edit(args) => Box::new(edit::EditHandler::new(args)),
+        subcommand::Subcommand::Find(args) => Box::new(find::FindHandler::new(args)),
+        subcommand::Subcommand::Gen(args) => Box::new(generate::GenerateHandler::new(args)),
+        subcommand::Subcommand::Grep(args) => Box::new(grep::GrepHandler::new(args)),
+        subcommand::Subcommand::Init(args) => Box::new(init::InitHandler::new(args)),
+        subcommand::Subcommand::Del(args) => Box::new(delete::DeleteHandler::new(args)),
     }
 }

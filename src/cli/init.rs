@@ -5,9 +5,9 @@ use std::fs::File;
 use std::io::Write;
 
 use crate::utils::constants::GPG_RECIPIENT_FILENAME;
-use crate::utils::paths::get_app_path;
+use crate::utils::paths::app_root;
 
-use super::command_handler::CommandHandler;
+use super::subcommand::SubcommandHandler;
 
 #[derive(Parser, Debug)]
 pub struct InitArgs {
@@ -27,10 +27,10 @@ impl InitHandler {
 }
 
 #[async_trait]
-impl CommandHandler for InitHandler {
+impl SubcommandHandler for InitHandler {
     async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
-        let app_path = get_app_path();
-        let file_path = app_path.join(GPG_RECIPIENT_FILENAME);
+        let app_root = app_root();
+        let file_path = app_root.join(GPG_RECIPIENT_FILENAME);
         let mut file = File::create(file_path)?;
 
         file.write_all(self.gpg_recipient.as_bytes())?;

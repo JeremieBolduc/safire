@@ -11,11 +11,10 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use super::command_handler::CommandHandler;
+use super::subcommand::SubcommandHandler;
 use crate::utils::{
-    directories::find_files_in,
     gpg::{get_gpg_recipient, GpgManager},
-    paths::get_app_path,
+    paths::{app_root, filtered_search, to_short_path},
 };
 
 #[derive(Parser, Debug)]
@@ -74,11 +73,11 @@ fn get_line_match_outputs(
 }
 
 #[async_trait]
-impl CommandHandler for GrepHandler {
+impl SubcommandHandler for GrepHandler {
     async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
         let regex = Regex::new(&self.regex)?;
 
-        let encrypted_file_paths = find_files_in(&get_app_path(), &|file_path| {
+        let encrypted_file_paths = filtered_search(&app_root(), &|file_path| {
             if let Some(file_name) = file_path.file_name() {
                 let os_str: &OsStr = file_name;
                 return os_str.to_string_lossy().ends_with(".gpg");
@@ -108,16 +107,13 @@ impl CommandHandler for GrepHandler {
 
         line_match_outputs.into_iter().for_each(|x| {
             let (path, line_match_outputs) = x;
-            let store_path = path
-                .strip_prefix(get_app_path())
-                .unwrap()
-                .parent()
-                .unwrap_or(Path::new(""));
-            println!("{}:", store_path.display().to_string().cyan());
+            if let Ok(store_path) = to_short_path(&path) {
+                println!("{}:", store_path.display().to_string().cyan());
 
-            line_match_outputs.iter().for_each(|line_match_output| {
-                println!("{}", line_match_output);
-            })
+                line_match_outputs.iter().for_each(|line_match_output| {
+                    println!("{}", line_match_output);
+                })
+            }
         });
 
         Ok(None)

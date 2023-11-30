@@ -1,10 +1,9 @@
-pub mod command;
-pub mod command_handler;
+pub mod add;
 pub mod copy;
+pub mod delete;
 pub mod edit;
 pub mod find;
 pub mod generate;
 pub mod grep;
 pub mod init;
-pub mod insert;
-pub mod remove;
+pub mod subcommand;

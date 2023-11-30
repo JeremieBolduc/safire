@@ -7,10 +7,10 @@ use std::io::{self, BufRead};
 use std::time::Duration;
 use tokio::time::sleep;
 
-use super::command_handler::CommandHandler;
+use super::subcommand::SubcommandHandler;
 use crate::utils::constants::ENCRYPTED_FILE_EXT;
 use crate::utils::gpg::{get_gpg_recipient, GpgManager};
-use crate::utils::paths::get_app_path;
+use crate::utils::paths::app_root;
 
 #[derive(Parser, Debug)]
 pub struct CopyArgs {
@@ -30,10 +30,10 @@ impl CopyHandler {
 }
 
 #[async_trait]
-impl CommandHandler for CopyHandler {
+impl SubcommandHandler for CopyHandler {
     async fn execute_async(&self) -> Result<Option<String>, Box<dyn Error>> {
         let encrypted_file_name = format!("{}.{}", self.path.replace("/", "-"), ENCRYPTED_FILE_EXT);
-        let store_path = get_app_path().join(&self.path);
+        let store_path = app_root().join(&self.path);
         let encrypted_file_path = store_path.join(&encrypted_file_name);
 
         if !store_path.exists() {

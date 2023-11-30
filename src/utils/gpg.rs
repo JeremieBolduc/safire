@@ -6,14 +6,16 @@ use std::{
     process::Command,
 };
 
+use colored::Colorize;
+
 use super::{
     constants::{DECRYPTED_FILE_EXT, ENCRYPTED_FILE_EXT, GPG_RECIPIENT_FILENAME},
-    paths::get_app_path,
+    paths::app_root,
 };
 
 pub fn get_gpg_recipient() -> Result<String, Box<dyn Error>> {
-    let app_path = get_app_path();
-    let file_path = app_path.join(GPG_RECIPIENT_FILENAME);
+    let app_root = app_root();
+    let file_path = app_root.join(GPG_RECIPIENT_FILENAME);
 
     let file = File::open(&file_path)?;
     let reader = io::BufReader::new(file);
@@ -113,8 +115,8 @@ impl GpgManager {
 
 impl Drop for GpgManager {
     fn drop(&mut self) {
-        if let Err(_) = self.reencrypt_all_files() {
-            eprintln!("Error during files reencryption");
+        if let Err(err) = self.reencrypt_all_files() {
+            eprintln!("Error during files reencryption {}", err.to_string().red());
         }
     }
 }
